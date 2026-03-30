@@ -1,7 +1,8 @@
 using System;
 using System.Xml.Schema;
 using System.Xml;
-using Newtonsoft.Json;
+using System.Text;
+using System.Net;
 
 
 
@@ -32,11 +33,9 @@ namespace ConsoleApp1
             string result = Verification(xmlURL, xsdURL);
             Console.WriteLine(result);
 
-
             // Q3.2: Validate the error XML against the XSD - expects error messages
             result = Verification(xmlErrorURL, xsdURL);
             Console.WriteLine(result);
-
 
             // Q3.3: Convert the valid XML to JSON format
             result = Xml2Json(xmlURL);
@@ -47,42 +46,34 @@ namespace ConsoleApp1
         // Returns "No errors are found" if valid, or the validation error messages if invalid
         public static string Verification(string xmlUrl, string xsdUrl)
         {
-            // String to accumulate any validation errors found
             string errors = "";
 
             try
             {
-                // Step 1: Create XmlSchemaSet and add the XSD schema from URL
                 XmlSchemaSet sc = new XmlSchemaSet();
                 sc.Add(null, xsdUrl);
 
-                // Step 2: Configure XmlReaderSettings for schema validation
                 XmlReaderSettings settings = new XmlReaderSettings();
                 settings.ValidationType = ValidationType.Schema;
                 settings.Schemas = sc;
                 settings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
 
-                // Step 3: Attach event handler to collect validation errors
                 settings.ValidationEventHandler += delegate (object sender, ValidationEventArgs e)
                 {
                     errors += "Validation Error: " + e.Message + "\n";
                 };
 
-                // Step 4: Create XmlReader and parse the XML file against the schema
                 XmlReader reader = XmlReader.Create(xmlUrl, settings);
 
-                // Read through entire document - triggers validation events on errors
                 while (reader.Read()) { }
 
                 reader.Close();
             }
             catch (Exception ex)
             {
-                // Catch any XML parsing exceptions (e.g., malformed XML)
                 errors += "Validation Error: " + ex.Message;
             }
 
-            // Return result based on whether errors were found
             if (errors == "")
             {
                 return "No errors are found";
@@ -92,23 +83,91 @@ namespace ConsoleApp1
         }
 
         // Q2.2: Converts an XML file from a URL into a JSON string
-        // Uses XmlDocument to load the XML and Newtonsoft.Json to serialize to JSON
-        // The returned JSON is deserializable by JsonConvert.DeserializeXmlNode()
+        // The returned jsonText needs to be de-serializable by Newtonsoft.Json package
         public static string Xml2Json(string xmlUrl)
         {
             try
             {
-                // Download the XML content from the remote URL
                 string xmlContent = DownloadContent(xmlUrl);
 
-                // Load the XML string into an XmlDocument object
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(xmlContent);
 
-                // Serialize the XmlDocument to a JSON string using Newtonsoft.Json
-                string jsonText = JsonConvert.SerializeXmlNode(doc);
+                XmlNodeList parkNodes = doc.SelectNodes("/NationalParks/NationalPark");
+                StringBuilder json = new StringBuilder();
 
-                return jsonText;
+                json.Append("{");
+                json.Append("\"NationalParks\":{");
+                json.Append("\"NationalPark\":[");
+
+                for (int i = 0; i < parkNodes.Count; i++)
+                {
+                    XmlNode park = parkNodes[i];
+
+                    if (i > 0)
+                    {
+                        json.Append(",");
+                    }
+
+                    json.Append("{");
+
+                    XmlNode nameNode = park.SelectSingleNode("Name");
+                    json.Append("\"Name\":\"");
+                    json.Append(EscapeJson(nameNode != null ? nameNode.InnerText : ""));
+                    json.Append("\",");
+
+                    XmlNodeList phoneNodes = park.SelectNodes("Phone");
+                    json.Append("\"Phone\":[");
+                    for (int j = 0; j < phoneNodes.Count; j++)
+                    {
+                        if (j > 0)
+                        {
+                            json.Append(",");
+                        }
+
+                        json.Append("\"");
+                        json.Append(EscapeJson(phoneNodes[j].InnerText));
+                        json.Append("\"");
+                    }
+                    json.Append("],");
+
+                    XmlNode addressNode = park.SelectSingleNode("Address");
+                    json.Append("\"Address\":{");
+
+                    AppendJsonField(json, "Number", addressNode.SelectSingleNode("Number").InnerText);
+                    json.Append(",");
+                    AppendJsonField(json, "Street", addressNode.SelectSingleNode("Street").InnerText);
+                    json.Append(",");
+                    AppendJsonField(json, "City", addressNode.SelectSingleNode("City").InnerText);
+                    json.Append(",");
+                    AppendJsonField(json, "State", addressNode.SelectSingleNode("State").InnerText);
+                    json.Append(",");
+                    AppendJsonField(json, "Zip", addressNode.SelectSingleNode("Zip").InnerText);
+
+                    XmlAttribute nearestAirportAttr = addressNode.Attributes["NearestAirport"];
+                    if (nearestAirportAttr != null)
+                    {
+                        json.Append(",");
+                        AppendJsonField(json, "@NearestAirport", nearestAirportAttr.Value);
+                    }
+
+                    json.Append("}");
+
+                    XmlAttribute ratingAttr = park.Attributes["Rating"];
+                    if (ratingAttr != null)
+                    {
+                        json.Append(",");
+                        AppendJsonField(json, "@Rating", ratingAttr.Value);
+                    }
+
+                    json.Append("}");
+                }
+
+                json.Append("]");
+                json.Append("}");
+                json.Append("}");
+
+                return json.ToString();
             }
             catch (Exception ex)
             {
@@ -116,10 +175,72 @@ namespace ConsoleApp1
             }
         }
 
+        private static void AppendJsonField(StringBuilder json, string key, string value)
+        {
+            json.Append("\"");
+            json.Append(EscapeJson(key));
+            json.Append("\":\"");
+            json.Append(EscapeJson(value));
+            json.Append("\"");
+        }
+
+        private static string EscapeJson(string value)
+        {
+            if (value == null)
+            {
+                return "";
+            }
+
+            StringBuilder escaped = new StringBuilder();
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+
+                switch (c)
+                {
+                    case '\\':
+                        escaped.Append("\\\\");
+                        break;
+                    case '"':
+                        escaped.Append("\\\"");
+                        break;
+                    case '\b':
+                        escaped.Append("\\b");
+                        break;
+                    case '\f':
+                        escaped.Append("\\f");
+                        break;
+                    case '\n':
+                        escaped.Append("\\n");
+                        break;
+                    case '\r':
+                        escaped.Append("\\r");
+                        break;
+                    case '\t':
+                        escaped.Append("\\t");
+                        break;
+                    default:
+                        if (c < 32)
+                        {
+                            escaped.Append("\\u");
+                            escaped.Append(((int)c).ToString("x4"));
+                        }
+                        else
+                        {
+                            escaped.Append(c);
+                        }
+                        break;
+                }
+            }
+
+            return escaped.ToString();
+        }
+
         // Helper method to download content from URL
         private static string DownloadContent(string url)
         {
-            using (System.Net.WebClient client = new System.Net.WebClient())
+            using (WebClient client = new WebClient())
             {
                 return client.DownloadString(url);
             }
