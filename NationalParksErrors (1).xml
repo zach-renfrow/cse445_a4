@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NationalPark xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="NationalParks.xsd">
+
+  <NationalPark Rating="4.9">
+    <Name>Grand Canyon</Name>
+    <Name>Grand Canyon National Park</Name>
+    <Phone>928-638-7496</Phone>
+    <Phone>888-297-2757</Phone>
+    <Phone>866-499-2574</Phone>
+    <Address NearestAirport="FlagStaff">
+      <Number>8</Number>
+      <Street>S Entrance Road</Street>
+      <City>Grand Canyon</City>
+      <State>AZ</State>
+      <Zip>86023</Zip>
+    </Address>
+  </NationalPark>
+
+  <NationalPark Rating="4.8">
+    <Name>Yellowstone</Name>
+    <Phone>307-344-7381</Phone>
+    <Phone>307-344-2107</Phone>
+    <Address NearestAirport="Bozeman">
+      <Number>2</Number>
+      <Street>Officers Row</Street>
+      <City>Yellowstone National Park</City>
+      <State>WY</State>
+      <Zip>82190</Zip>
+    </Address>
+  </NationalPark>
+
+  <NationalPark Rating="4.7">
+    <Name>Yosemite</Name>
+    <Address NearestAirport="Fresno">
+      <Number>1</Number>
+      <Street>Yosemite Valley</Street>
+      <City>Yosemite Village</City>
+      <State>CA</State>
+      <Zip>95389</Zip>
+    </Address>
+  </NationalPark>
+
+  <NationalPark>
+    <Name>Zion</Name>
+    <Phone>435-772-3256</Phone>
+    <Phone>435-772-0170</Phone>
+    <Address>
+      <Number>1</Number>
+      <Street>Zion Park Blvd</Street>
+      <City>Springdale</City>
+      <State>UT</State>
+      <Zip>84767</Zip>
+    </Address>
+  </NationalPark>
+
+  <NationalPark Rating="4.8">
+    <Name>Rocky Mountain</Name>
+    <Phone>970-586-1206</Phone>
+    <Address NearestAirport="Denver">
+      <Number>1000</Number>
+      <Street>US Hwy 36</Street>
+      <City>Estes Park</City>
+      <State>CO</State>
+      <Zip>80517</Zip>
+  </NationalPark>
+
+</NationalPark>
