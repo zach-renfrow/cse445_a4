@@ -19,31 +19,22 @@ namespace ConsoleApp1
 
     public class Submission
     {
-        // Q1.2: URL to the valid NationalParks.xml hosted on GitHub Pages
         public static string xmlURL = "https://zach-renfrow.github.io/cse445_a4/NationalParks.xml";
-        // Q1.3: URL to the NationalParksErrors.xml with 5 injected errors
         public static string xmlErrorURL = "https://zach-renfrow.github.io/cse445_a4/NationalParksErrors.xml";
-        // Q1.1: URL to the NationalParks.xsd schema definition
         public static string xsdURL = "https://zach-renfrow.github.io/cse445_a4/NationalParks.xsd";
 
-        // Q3: Main method calls Verification on both XML files and converts valid XML to JSON
         public static void Main(string[] args)
         {
-            // Q3.1: Validate the valid XML against the XSD - expects "No errors are found"
             string result = Verification(xmlURL, xsdURL);
             Console.WriteLine(result);
 
-            // Q3.2: Validate the error XML against the XSD - expects error messages
             result = Verification(xmlErrorURL, xsdURL);
             Console.WriteLine(result);
 
-            // Q3.3: Convert the valid XML to JSON format
             result = Xml2Json(xmlURL);
             Console.WriteLine(result);
         }
 
-        // Q2.1: Validates an XML file against an XSD schema using XmlSchemaSet and XmlReader
-        // Returns "No errors are found" if valid, or the validation error messages if invalid
         public static string Verification(string xmlUrl, string xsdUrl)
         {
             string errors = "";
@@ -82,8 +73,6 @@ namespace ConsoleApp1
             return errors.Trim();
         }
 
-        // Q2.2: Converts an XML file from a URL into a JSON string
-        // The returned jsonText needs to be de-serializable by Newtonsoft.Json package
         public static string Xml2Json(string xmlUrl)
         {
             try
@@ -237,7 +226,6 @@ namespace ConsoleApp1
             return escaped.ToString();
         }
 
-        // Helper method to download content from URL
         private static string DownloadContent(string url)
         {
             using (WebClient client = new WebClient())
