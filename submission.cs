@@ -19,9 +19,9 @@ namespace ConsoleApp1
 
     public class Submission
     {
-        public static string xmlURL = "Your XML URL";
-        public static string xmlErrorURL = "Your Error XML URL";
-        public static string xsdURL = "Your XSD URL";
+        public static string xmlURL = "https://zach-renfrow.github.io/cse445_a4/NationalParks.xml";
+        public static string xmlErrorURL = "https://zach-renfrow.github.io/cse445_a4/NationalParksErrors.xml";
+        public static string xsdURL = "https://zach-renfrow.github.io/cse445_a4/NationalParks.xsd";
 
         public static void Main(string[] args)
         {
@@ -80,81 +80,18 @@ namespace ConsoleApp1
         {
             try
             {
-                XmlDocument sourceDoc = new XmlDocument();
-                sourceDoc.LoadXml(DownloadContent(xmlUrl));
+                string xmlContent = DownloadContent(xmlUrl);
 
-                XmlDocument jsonDoc = new XmlDocument();
-                XmlElement root = jsonDoc.CreateElement("NationalParks");
-                jsonDoc.AppendChild(root);
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(xmlContent);
 
-                XmlNodeList parks = sourceDoc.SelectNodes("/NationalParks/NationalPark");
+                string jsonText = JsonConvert.SerializeXmlNode(doc);
 
-                if (parks != null)
-                {
-                    foreach (XmlNode park in parks)
-                    {
-                        XmlElement parkElement = jsonDoc.CreateElement("NationalPark");
-
-                        if (park.Attributes != null && park.Attributes["Rating"] != null)
-                        {
-                            XmlAttribute rating = jsonDoc.CreateAttribute("Rating");
-                            rating.Value = park.Attributes["Rating"].Value;
-                            parkElement.Attributes.Append(rating);
-                        }
-
-                        AppendElement(jsonDoc, parkElement, "Name", park.SelectSingleNode("Name"));
-
-                        XmlNodeList phones = park.SelectNodes("Phone");
-                        if (phones != null)
-                        {
-                            foreach (XmlNode phone in phones)
-                            {
-                                AppendElement(jsonDoc, parkElement, "Phone", phone);
-                            }
-                        }
-
-                        XmlNode address = park.SelectSingleNode("Address");
-                        if (address != null)
-                        {
-                            XmlElement addressElement = jsonDoc.CreateElement("Address");
-
-                            if (address.Attributes != null && address.Attributes["NearestAirport"] != null)
-                            {
-                                XmlAttribute airport = jsonDoc.CreateAttribute("NearestAirport");
-                                airport.Value = address.Attributes["NearestAirport"].Value;
-                                addressElement.Attributes.Append(airport);
-                            }
-
-                            AppendElement(jsonDoc, addressElement, "Number", address.SelectSingleNode("Number"));
-                            AppendElement(jsonDoc, addressElement, "Street", address.SelectSingleNode("Street"));
-                            AppendElement(jsonDoc, addressElement, "City", address.SelectSingleNode("City"));
-                            AppendElement(jsonDoc, addressElement, "State", address.SelectSingleNode("State"));
-                            AppendElement(jsonDoc, addressElement, "Zip", address.SelectSingleNode("Zip"));
-
-                            parkElement.AppendChild(addressElement);
-                        }
-
-                        root.AppendChild(parkElement);
-                    }
-                }
-
-                string jsonText = JsonConvert.SerializeXmlNode(jsonDoc, Newtonsoft.Json.Formatting.Indented);
-                JsonConvert.DeserializeXmlNode(jsonText);
                 return jsonText;
             }
             catch (Exception ex)
             {
                 return "Exception: " + ex.Message;
-            }
-        }
-
-        private static void AppendElement(XmlDocument doc, XmlElement parent, string elementName, XmlNode sourceNode)
-        {
-            if (sourceNode != null)
-            {
-                XmlElement child = doc.CreateElement(elementName);
-                child.InnerText = sourceNode.InnerText;
-                parent.AppendChild(child);
             }
         }
 
