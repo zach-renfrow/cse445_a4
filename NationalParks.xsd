@@ -22,7 +22,7 @@
                 </xsd:complexType>
               </xsd:element>
             </xsd:sequence>
-            <xsd:attribute name="Rating" type="xsd:string" use="optional"/>
+            <xsd:attribute name="Rating" type="xsd:decimal" use="optional"/>
           </xsd:complexType>
         </xsd:element>
       </xsd:sequence>
